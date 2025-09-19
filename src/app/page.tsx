@@ -1,17 +1,16 @@
 // src/app/page.tsx
+import Link from "next/link";
 import { SignedIn, SignedOut } from "@clerk/nextjs";
 
-// Always fetch fresh data
 export const dynamic = "force-dynamic";
 
-// Fetch images from Web A
 async function getImages() {
   try {
-    const baseURL = process.env.NEXT_PUBLIC_API_BASE; // Web A API
+    const baseURL = process.env.NEXT_PUBLIC_API_BASE;
     if (!baseURL) throw new Error("NEXT_PUBLIC_API_BASE is not set");
 
-    // Only append /images if baseURL is just /api
-    const res = await fetch(`${baseURL}/images`, { cache: "no-store" });
+    const url = baseURL.endsWith("/images") ? baseURL : `${baseURL}/images`;
+    const res = await fetch(url, { cache: "no-store" });
 
     if (!res.ok) {
       console.error("Response status:", res.status, res.statusText);
@@ -31,44 +30,75 @@ export default async function HomePage() {
 
   return (
     <main className="min-h-screen w-full bg-gray-50">
-      {/* If not signed in */}
       <SignedOut>
         <div className="flex items-center justify-center h-screen text-2xl font-medium">
           Please Sign In Above to Continue!
         </div>
       </SignedOut>
 
-      {/* If signed in */}
       <SignedIn>
-        <div className="max-w-7xl mx-auto px-4 py-8 w-full">
-          <h1 className="text-3xl sm:text-4xl font-bold text-center mb-8">
-            Cloud Storage Gallery
-          </h1>
+        <section className="relative h-[60vh] w-full bg-gray-900 text-white flex items-center justify-center">
+          <img
+            src={images[0]?.imageUrl || "/placeholder.jpg"}
+            alt="Hero Background"
+            className="absolute inset-0 w-full h-full object-cover opacity-60"
+          />
+          <div className="relative z-10 text-center">
+            <h1 className="text-4xl md:text-6xl font-bold tracking-wide">
+              FINE ARTS
+            </h1>
+            <p className="mt-2 text-lg md:text-2xl font-light">For the Home</p>
+          </div>
+        </section>
 
-          {images.length === 0 ? (
-            <p className="text-center text-lg text-gray-500">No images available</p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-              {images.map((image: any) => (
-                <div
+        <section className="bg-white py-12 px-6 md:px-12">
+          <div className="max-w-6xl mx-auto flex flex-col md:flex-row items-center justify-between gap-6">
+            <div>
+              <h2 className="text-2xl md:text-3xl font-bold mb-3">
+                Featured Artists
+              </h2>
+              <p className="text-gray-600 max-w-2xl">
+                Cloud Storage Gallery introduces great art and artists. Now
+                showing paintings and artworks from our collection.
+              </p>
+            </div>
+            <button className="px-6 py-2 bg-black text-white rounded-md hover:bg-gray-800 transition">
+              View All
+            </button>
+          </div>
+        </section>
+
+        <section className="bg-yellow-100 py-12 px-6 md:px-12">
+          <div className="max-w-6xl mx-auto grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+            {images.length === 0 ? (
+              <p className="text-center text-lg text-gray-500 col-span-full">
+                No images available
+              </p>
+            ) : (
+              images.map((image: any) => (
+                <Link
+                  href={`/image/${image.id}`}
                   key={image.id}
-                  className="flex flex-col border rounded-lg shadow-sm overflow-hidden bg-white hover:shadow-lg transition-shadow"
+                  className="bg-white rounded-md shadow hover:shadow-lg overflow-hidden block"
                 >
-                  <div className="relative aspect-video bg-zinc-900">
+                  <div className="aspect-video">
                     <img
                       src={image.imageUrl}
                       alt={image.ImageName || image.filename || "Image"}
-                      className="h-full w-full object-contain object-top"
+                      className="h-full w-full object-cover"
                     />
                   </div>
-                  <div className="text-center p-2 text-sm font-medium truncate">
-                    {image.ImageName || image.filename}
+                  <div className="p-4">
+                    <h3 className="font-semibold text-gray-800 text-sm md:text-base">
+                      {image.ImageName || image.filename}
+                    </h3>
+                    <p className="text-xs text-gray-500 mt-1">Artist Gallery</p>
                   </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
+                </Link>
+              ))
+            )}
+          </div>
+        </section>
       </SignedIn>
     </main>
   );
